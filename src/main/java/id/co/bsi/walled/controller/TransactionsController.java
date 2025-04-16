@@ -106,9 +106,9 @@ public class TransactionsController {
         if (req.getAmount() <= 0) {
             error.add("Amount must be set or its value should be positive!");
         }
-        if (req.getNotes() == null) {
-            error.add("Notes not set, please set it to body!");
-        }
+//        if (req.getNotes() == null) {
+//            error.add("Notes not set, please set it to body!");
+//        }
         if (req.getRecipientAccount() == null && req.getMethod() == 0) {
             error.add("Recipient Account|Method not set, please set it to body!");
         }
