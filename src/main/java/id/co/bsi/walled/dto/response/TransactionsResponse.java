@@ -9,7 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class TransactionsResponse extends SuccessResponse{
+public class TransactionsResponse extends Response{
 
     private List<TransactionResponse> data;
 }
