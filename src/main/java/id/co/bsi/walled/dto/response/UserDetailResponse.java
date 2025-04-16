@@ -6,10 +6,9 @@ import lombok.Data;
 import java.lang.reflect.Array;
 @Data
 @AllArgsConstructor
-public class UserDetailResponse extends SuccessResponse {
+public class UserDetailResponse extends Response {
     private String full_name;
     private String email;
     private String mobile_phone;
     private String image_url;
-
 }

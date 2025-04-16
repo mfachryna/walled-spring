@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class UserAccountsResponse extends SuccessResponse{
+public class UserAccountsResponse extends Response{
     private int id;
     private String account_number;
     private String balance;
