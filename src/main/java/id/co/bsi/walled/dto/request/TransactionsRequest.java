@@ -4,4 +4,7 @@ import lombok.Data;
 
 @Data
 public class TransactionsRequest {
+    private int amount;
+    private String notes;
+    private String type;
 }

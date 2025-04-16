@@ -7,11 +7,11 @@ public class Response {
     private String message = "";
     private boolean status = true;
 
-    public void setFailure(){
+    public void setFailure() {
         this.status = false;
     }
 
-    public void setSuccess(){
+    public void setSuccess() {
         this.status = true;
     }
 }
