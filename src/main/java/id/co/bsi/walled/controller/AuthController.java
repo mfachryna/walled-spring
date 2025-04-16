@@ -7,6 +7,7 @@ import id.co.bsi.walled.dto.response.Response;
 import id.co.bsi.walled.model.User;
 import id.co.bsi.walled.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,8 +18,7 @@ public class AuthController {
     private UserRepository userRepository;
 
     @PostMapping("/register")
-    public ResponseEntity<Response> register(@RequestBody User user)
-    {
+    public ResponseEntity<Response> register(@RequestBody User user) {
         if (user.getFullName() == null || user.getFullName().isEmpty()) {
             Response response = new Response();
             response.setStatus(false);
@@ -59,7 +59,7 @@ public class AuthController {
         registerResponse.setStatus(true);
         registerResponse.setMessage("User created successfully");
 
-        return ResponseEntity.ok(registerResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(registerResponse);
     }
 
     @PostMapping("/login")
