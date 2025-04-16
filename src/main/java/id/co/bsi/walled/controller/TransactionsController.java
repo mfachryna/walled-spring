@@ -2,9 +2,7 @@ package id.co.bsi.walled.controller;
 
 import id.co.bsi.walled.dto.request.TopupRequest;
 import id.co.bsi.walled.dto.request.TransferRequest;
-import id.co.bsi.walled.dto.response.CreateTransactionResponse;
-import id.co.bsi.walled.dto.response.TransactionResponse;
-import id.co.bsi.walled.dto.response.TransactionsResponse;
+import id.co.bsi.walled.dto.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,5 +52,17 @@ public class TransactionsController {
         res.setSuccess();
         res.setMessage("Success creating transfer transaction!");
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
+    }
+
+    @GetMapping("/type")
+    public ResponseEntity <TypeResponse> typeResponse(){
+        TypeResponse typeResponse = new TypeResponse(1,"transfer");
+        return ResponseEntity.ok(typeResponse);
+    }
+
+    @GetMapping("/method")
+    public ResponseEntity <MethodResponse> methodResponse(){
+        MethodResponse methodResponse = new MethodResponse(1,"credit");
+        return ResponseEntity.ok(methodResponse);
     }
 }
