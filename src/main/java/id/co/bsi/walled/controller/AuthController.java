@@ -4,7 +4,9 @@ import id.co.bsi.walled.dto.request.LoginRequest;
 import id.co.bsi.walled.dto.request.RegisterRequest;
 import id.co.bsi.walled.dto.response.LoginResponse;
 import id.co.bsi.walled.dto.response.Response;
+import id.co.bsi.walled.model.Account;
 import id.co.bsi.walled.model.User;
+import id.co.bsi.walled.repository.AccountRepository;
 import id.co.bsi.walled.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @PostMapping("/register")
     public ResponseEntity<Response> register(@RequestBody User user) {
@@ -54,7 +58,12 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
 
-        this.userRepository.save(user);
+        User userRes = this.userRepository.save(user);
+        Account account = new Account();
+        account.setUser(user);
+        account.setBalance(1000000);
+        account.setAccountNumber("WAWIWADSDASDASD");
+        this.accountRepository.save(account);
         Response registerResponse = new Response();
         registerResponse.setStatus(true);
         registerResponse.setMessage("User created successfully");

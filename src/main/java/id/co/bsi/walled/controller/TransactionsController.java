@@ -4,8 +4,10 @@ import id.co.bsi.walled.dto.request.TopupRequest;
 import id.co.bsi.walled.dto.request.TransactionsRequest;
 import id.co.bsi.walled.dto.request.TransferRequest;
 import id.co.bsi.walled.dto.response.*;
+import id.co.bsi.walled.model.Account;
 import id.co.bsi.walled.model.Transaction;
 import id.co.bsi.walled.model.TransactionType;
+import id.co.bsi.walled.repository.AccountRepository;
 import id.co.bsi.walled.repository.TransactionRepository;
 import id.co.bsi.walled.repository.TransactionTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users/transactions")
@@ -24,6 +27,9 @@ public class TransactionsController {
 
     @Autowired
     TransactionTypeRepository transactionTypeRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     @GetMapping("")
     public ResponseEntity<TransactionsResponse> getTransactions() {
@@ -44,7 +50,7 @@ public class TransactionsController {
             res.setMessage("Transaction type not found!");
             res.setFailure();
             return ResponseEntity
-                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .status(HttpStatus.BAD_REQUEST)
                     .body(res);
         }
         List<String> error = checkTransactionsBody(req);
@@ -55,10 +61,26 @@ public class TransactionsController {
             res.setFailure();
 
             return ResponseEntity
-                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .status(HttpStatus.BAD_REQUEST)
                     .body(res);
         }
 
+
+        Optional<Account> accountQuery = this.accountRepository.findById(1);
+        if (accountQuery.isPresent()) {
+            Account account = accountQuery.get();
+            if (req.getAmount() > account.getBalance()) {
+                Response res = new Response();
+                res.setMessage("Not enough balance!");
+                res.setFailure();
+
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(res);
+            }
+            account.setBalance(account.getBalance() - req.getAmount());
+            this.accountRepository.save(account);
+        }
 
         Transaction transaction = new Transaction();
 
@@ -67,20 +89,22 @@ public class TransactionsController {
         transaction.setSenderAccount("asdasdasdas");
         transaction.setTransactionType(data);
         transaction.setNotes(req.getNotes());
-        transaction.setCreatedAt("2025 April 16");
+
 
         this.transactionRepository.save(transaction);
         req.setType(data.getId());
         CreateTransactionResponse res = new CreateTransactionResponse(req);
         res.setSuccess();
         res.setMessage("Success creating top up transaction!");
-        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        return ResponseEntity.status(HttpStatus.CREATED).
+
+                body(res);
     }
 
     private static List<String> checkTransactionsBody(TransactionsRequest req) {
         List<String> error = new ArrayList<String>();
-        if (req.getAmount() == 0) {
-            error.add("Amount not set, please set it to body!");
+        if (req.getAmount() <= 0) {
+            error.add("Amount must be set or its value should be positive!");
         }
         if (req.getNotes() == null) {
             error.add("Notes not set, please set it to body!");
@@ -92,14 +116,14 @@ public class TransactionsController {
     }
 
     @GetMapping("/type")
-    public ResponseEntity <TypeResponse> typeResponse(){
-        TypeResponse typeResponse = new TypeResponse(1,"transfer");
+    public ResponseEntity<TypeResponse> typeResponse() {
+        TypeResponse typeResponse = new TypeResponse(1, "transfer");
         return ResponseEntity.ok(typeResponse);
     }
 
     @GetMapping("/method")
-    public ResponseEntity <MethodResponse> methodResponse(){
-        MethodResponse methodResponse = new MethodResponse(1,"credit");
+    public ResponseEntity<MethodResponse> methodResponse() {
+        MethodResponse methodResponse = new MethodResponse(1, "credit");
         return ResponseEntity.ok(methodResponse);
     }
 }
