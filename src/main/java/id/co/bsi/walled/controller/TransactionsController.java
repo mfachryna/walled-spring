@@ -70,7 +70,7 @@ public class TransactionsController {
         transaction.setCreatedAt("2025 April 16");
 
         this.transactionRepository.save(transaction);
-        req.setMethod(data.getId());
+        req.setType(data.getId());
         CreateTransactionResponse res = new CreateTransactionResponse(req);
         res.setSuccess();
         res.setMessage("Success creating top up transaction!");
