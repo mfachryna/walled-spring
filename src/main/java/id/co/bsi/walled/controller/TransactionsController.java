@@ -1,8 +1,14 @@
 package id.co.bsi.walled.controller;
 
 import id.co.bsi.walled.dto.request.TopupRequest;
+import id.co.bsi.walled.dto.request.TransactionsRequest;
 import id.co.bsi.walled.dto.request.TransferRequest;
 import id.co.bsi.walled.dto.response.*;
+import id.co.bsi.walled.model.Transaction;
+import id.co.bsi.walled.model.TransactionType;
+import id.co.bsi.walled.repository.TransactionRepository;
+import id.co.bsi.walled.repository.TransactionTypeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,19 +19,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/users/transactions")
 public class TransactionsController {
+    @Autowired
+    TransactionRepository transactionRepository;
+
+    @Autowired
+    TransactionTypeRepository transactionTypeRepository;
+
     @GetMapping("")
     public ResponseEntity<TransactionsResponse> getTransactions() {
-        List<TransactionResponse> data = new ArrayList<>();
-
-        for (int i = 1; i <= 10; i++) {
-            TransactionResponse transaction = new TransactionResponse();
-            transaction.setAmount(i * 1010);
-            transaction.setDate("25 desember 2001");
-            transaction.setType("topup");
-            transaction.setNotes("oiii");
-            transaction.setFromTo("kucing");
-            data.add(transaction);
-        }
+        List<Transaction> data = this.transactionRepository.findAll();
 
         TransactionsResponse transactionsResponse = new TransactionsResponse(data);
         transactionsResponse.setMessage("Transaction data retrieved!");
@@ -34,24 +36,59 @@ public class TransactionsController {
         return ResponseEntity.ok(transactionsResponse);
     }
 
-    @PostMapping("/transfer")
-    public ResponseEntity<CreateTransactionResponse> transfer(@RequestBody TransferRequest req) {
-        req.setType("transfer");
-        CreateTransactionResponse res = new CreateTransactionResponse(req);
+    @PostMapping("/{type}")
+    public ResponseEntity<?> transfer(@RequestBody TransactionsRequest req, @PathVariable(name = "type") String type) {
+        TransactionType data = transactionTypeRepository.findByTitle(type);
+        if (data == null) {
+            Response res = new Response();
+            res.setMessage("Transaction type not found!");
+            res.setFailure();
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(res);
+        }
+        List<String> error = checkTransactionsBody(req);
 
+        if (!error.isEmpty()) {
+            Response res = new Response();
+            res.setMessage(error.toString());
+            res.setFailure();
+
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(res);
+        }
+
+
+        Transaction transaction = new Transaction();
+
+        transaction.setAmount(req.getAmount());
+        transaction.setRecipientAccount(req.getRecipientAccount());
+        transaction.setSenderAccount("asdasdasdas");
+        transaction.setTransactionType(data);
+        transaction.setNotes(req.getNotes());
+        transaction.setCreatedAt("2025 April 16");
+
+        this.transactionRepository.save(transaction);
+        req.setMethod(data.getId());
+        CreateTransactionResponse res = new CreateTransactionResponse(req);
         res.setSuccess();
         res.setMessage("Success creating top up transaction!");
         return ResponseEntity.status(HttpStatus.CREATED).body(res);
     }
 
-    @PostMapping("/topup")
-    public ResponseEntity<CreateTransactionResponse> topup(@RequestBody TopupRequest req) {
-        req.setType("topup");
-        CreateTransactionResponse res = new CreateTransactionResponse(req);
-
-        res.setSuccess();
-        res.setMessage("Success creating transfer transaction!");
-        return ResponseEntity.status(HttpStatus.CREATED).body(res);
+    private static List<String> checkTransactionsBody(TransactionsRequest req) {
+        List<String> error = new ArrayList<String>();
+        if (req.getAmount() == 0) {
+            error.add("Amount not set, please set it to body!");
+        }
+        if (req.getNotes() == null) {
+            error.add("Notes not set, please set it to body!");
+        }
+        if (req.getRecipientAccount() == null && req.getMethod() == 0) {
+            error.add("Recipient Account|Method not set, please set it to body!");
+        }
+        return error;
     }
 
     @GetMapping("/type")

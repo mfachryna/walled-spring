@@ -6,5 +6,7 @@ import lombok.Data;
 public class TransactionsRequest {
     private int amount;
     private String notes;
-    private String type;
+    private int type;
+    private String recipientAccount;
+    private int method;
 }
