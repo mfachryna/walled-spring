@@ -7,6 +7,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @Data
-public class LoginResponse extends SuccessResponse {
+public class LoginResponse extends Response {
     private String accessToken = "";
 }
