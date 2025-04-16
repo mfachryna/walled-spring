@@ -34,4 +34,13 @@ public class AuthController {
 
         return ResponseEntity.ok(loginResponse);
     }
+
+    @PostMapping("/signout")
+    public ResponseEntity<Response> signout() {
+        Response response = new Response();
+        response.setStatus(true);
+        response.setMessage("Logout success");
+        return ResponseEntity.ok(response);
+    }
+
 }
