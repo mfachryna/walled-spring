@@ -8,6 +8,7 @@ import id.co.bsi.walled.model.Account;
 import id.co.bsi.walled.model.User;
 import id.co.bsi.walled.repository.AccountRepository;
 import id.co.bsi.walled.repository.UserRepository;
+import id.co.bsi.walled.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,53 +18,22 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users/auth")
 public class AuthController {
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private AccountRepository accountRepository;
+    private UserService userService;
+
+//    @Autowired
+//    private AccountRepository accountRepository;
 
     @PostMapping("/register")
     public ResponseEntity<Response> register(@RequestBody User user) {
-        if (user.getFullName() == null || user.getFullName().isEmpty()) {
+        try {
+            this.userService.registerUser(user);
+        } catch (RuntimeException e) {
             Response response = new Response();
             response.setStatus(false);
-            response.setMessage("Full name is required");
+            response.setMessage(e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
 
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Email is required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Password is required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        if (user.getPassword().length() < 8) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Password must be at least 8 characters long");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        if (this.userRepository.findByEmail(user.getEmail()) != null) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Email already exists");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User userRes = this.userRepository.save(user);
-        Account account = new Account();
-        account.setUser(user);
-        account.setBalance(1000000);
-        account.setAccountNumber("WAWIWADSDASDASD");
-        this.accountRepository.save(account);
         Response registerResponse = new Response();
         registerResponse.setStatus(true);
         registerResponse.setMessage("User created successfully");
@@ -73,29 +43,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<? extends Response> login(@RequestBody LoginRequest creds) {
-        if (creds.getEmail() == null || creds.getEmail().isEmpty()) {
+        String token;
+        try {
+            token = this.userService.loginUser(creds);
+        } catch (Exception e) {
             Response response = new Response();
             response.setStatus(false);
-            response.setMessage("Email is required");
+            response.setMessage(e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
 
-        if (creds.getPassword() == null || creds.getPassword().isEmpty()) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Password is required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        User user = this.userRepository.findByEmailAndPassword(creds.getEmail(), creds.getPassword());
-        if (user == null) {
-            Response response = new Response();
-            response.setStatus(false);
-            response.setMessage("Invalid email or password");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        LoginResponse loginResponse = new LoginResponse("dummyAccessToken");
+        LoginResponse loginResponse = new LoginResponse(token);
         loginResponse.setMessage("Login succeeded!");
 
         return ResponseEntity.ok(loginResponse);
@@ -103,10 +61,22 @@ public class AuthController {
 
     @PostMapping("/signout")
     public ResponseEntity<Response> signout() {
-        Response response = new Response();
-        response.setStatus(true);
-        response.setMessage("Logout success");
-        return ResponseEntity.ok(response);
+        boolean isLogout;
+
+        try {
+            isLogout = this.userService.signoutUser();
+        } catch (RuntimeException e) {
+            Response response = new Response();
+            response.setStatus(false);
+            response.setMessage(e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        Response signoutResponse = new Response();
+        signoutResponse.setStatus(isLogout);
+        signoutResponse.setMessage("Signout succeeded!");
+
+        return ResponseEntity.ok(signoutResponse);
     }
 
 }
