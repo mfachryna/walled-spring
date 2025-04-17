@@ -6,6 +6,7 @@ import id.co.bsi.walled.dto.response.UserAccountsResponse;
 import id.co.bsi.walled.dto.response.UserDetailResponse;
 import id.co.bsi.walled.model.Account;
 import id.co.bsi.walled.model.User;
+import id.co.bsi.walled.repository.AccountRepository;
 import id.co.bsi.walled.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AccountRepository accountRepository;
 
     public String HashPassword(String password) {
 //        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
@@ -52,6 +56,8 @@ public class UserService {
         newAccount.setUser(newUser);
         newAccount.setBalance(1000000);
         newAccount.setAccountNumber("706044871");
+
+        this.accountRepository.save(newAccount);
 
         return newUser;
     }
