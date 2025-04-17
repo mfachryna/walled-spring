@@ -5,11 +5,15 @@ import id.co.bsi.walled.dto.request.TransactionsRequest;
 import id.co.bsi.walled.dto.request.TransferRequest;
 import id.co.bsi.walled.dto.response.*;
 import id.co.bsi.walled.model.Account;
+import id.co.bsi.walled.model.PaymentMethod;
 import id.co.bsi.walled.model.Transaction;
 import id.co.bsi.walled.model.TransactionType;
 import id.co.bsi.walled.repository.AccountRepository;
 import id.co.bsi.walled.repository.TransactionRepository;
 import id.co.bsi.walled.repository.TransactionTypeRepository;
+import id.co.bsi.walled.service.PaymentMethodService;
+import id.co.bsi.walled.service.TransactionService;
+import id.co.bsi.walled.service.TransactionTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +35,19 @@ public class TransactionsController {
     @Autowired
     private AccountRepository accountRepository;
 
+    @Autowired
+    private PaymentMethodService paymentMethodService;
+
+    @Autowired
+    private TransactionTypeService transactionTypeService;
+
+    @Autowired
+    private TransactionService transactionService;
+
+
     @GetMapping("")
     public ResponseEntity<TransactionsResponse> getTransactions() {
-        List<Transaction> data = this.transactionRepository.findAll();
+        List<Transaction> data = this.transactionService.getAllTransactions();
 
         TransactionsResponse transactionsResponse = new TransactionsResponse(data);
         transactionsResponse.setMessage("Transaction data retrieved!");
@@ -43,87 +57,26 @@ public class TransactionsController {
     }
 
     @PostMapping("/{type}")
-    public ResponseEntity<?> transfer(@RequestBody TransactionsRequest req, @PathVariable(name = "type") String type) {
-        TransactionType data = transactionTypeRepository.findByTitle(type);
-        if (data == null) {
-            Response res = new Response();
-            res.setMessage("Transaction type not found!");
-            res.setFailure();
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(res);
-        }
-        List<String> error = checkTransactionsBody(req);
+    public ResponseEntity<?> transfer(@RequestBody TransactionsRequest req,
+                                      @PathVariable(name = "type") String type) {
+        Response response = transactionService.transfer(req, type);
 
-        if (!error.isEmpty()) {
-            Response res = new Response();
-            res.setMessage(error.toString());
-            res.setFailure();
-
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(res);
+        if (!response.isStatus()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
 
-
-        Optional<Account> accountQuery = this.accountRepository.findById(1);
-        if (accountQuery.isPresent()) {
-            Account account = accountQuery.get();
-            if (req.getAmount() > account.getBalance()) {
-                Response res = new Response();
-                res.setMessage("Not enough balance!");
-                res.setFailure();
-
-                return ResponseEntity
-                        .status(HttpStatus.BAD_REQUEST)
-                        .body(res);
-            }
-            account.setBalance(account.getBalance() - req.getAmount());
-            this.accountRepository.save(account);
-        }
-
-        Transaction transaction = new Transaction();
-
-        transaction.setAmount(req.getAmount());
-        transaction.setRecipientAccount(req.getRecipientAccount());
-        transaction.setSenderAccount("asdasdasdas");
-        transaction.setTransactionType(data);
-        transaction.setNotes(req.getNotes());
-
-
-        this.transactionRepository.save(transaction);
-        req.setType(data.getId());
-        CreateTransactionResponse res = new CreateTransactionResponse(req);
-        res.setSuccess();
-        res.setMessage("Success creating top up transaction!");
-        return ResponseEntity.status(HttpStatus.CREATED).
-
-                body(res);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    private static List<String> checkTransactionsBody(TransactionsRequest req) {
-        List<String> error = new ArrayList<String>();
-        if (req.getAmount() <= 0) {
-            error.add("Amount must be set or its value should be positive!");
-        }
-//        if (req.getNotes() == null) {
-//            error.add("Notes not set, please set it to body!");
-//        }
-        if (req.getRecipientAccount() == null && req.getMethod() == 0) {
-            error.add("Recipient Account|Method not set, please set it to body!");
-        }
-        return error;
+    @GetMapping("/types")
+    public ResponseEntity<List<TransactionType>> getAllTypes(){
+        List<TransactionType> types = transactionTypeService.getAllType();
+        return ResponseEntity.ok(types);
     }
 
-    @GetMapping("/type")
-    public ResponseEntity<TypeResponse> typeResponse() {
-        TypeResponse typeResponse = new TypeResponse(1, "transfer");
-        return ResponseEntity.ok(typeResponse);
-    }
-
-    @GetMapping("/method")
-    public ResponseEntity<MethodResponse> methodResponse() {
-        MethodResponse methodResponse = new MethodResponse(1, "credit");
-        return ResponseEntity.ok(methodResponse);
+    @GetMapping("/methods")
+    public ResponseEntity<List<PaymentMethod>> getAllPaymentMethods() {
+        List<PaymentMethod> methods = this.paymentMethodService.getAllMethods();
+        return ResponseEntity.ok(methods);
     }
 }
