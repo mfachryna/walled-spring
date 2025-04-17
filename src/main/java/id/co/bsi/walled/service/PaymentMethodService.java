@@ -16,4 +16,12 @@ public class PaymentMethodService {
     public List<PaymentMethod> getAllMethods(){
         return this.paymentMethodRepository.findAll();
     }
+
+    public PaymentMethod createPaymentMethod(PaymentMethod paymentMethod) {
+        if (paymentMethod.getMethod() == null || paymentMethod.getMethod().isEmpty()) {
+            throw new RuntimeException("Payment method name cannot be null or empty");
+        }
+
+        return this.paymentMethodRepository.save(paymentMethod);
+    }
 }

@@ -3,10 +3,11 @@ package id.co.bsi.walled.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-@AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class MethodResponse {
+public class MethodResponse extends Response {
     private int id;
-    private String type;
+    private String method;
 }

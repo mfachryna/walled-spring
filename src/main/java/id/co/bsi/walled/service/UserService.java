@@ -9,7 +9,7 @@ import id.co.bsi.walled.model.User;
 import id.co.bsi.walled.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,8 +19,9 @@ public class UserService {
     private UserRepository userRepository;
 
     public String HashPassword(String password) {
-        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        return passwordEncoder.encode(password);
+//        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        return passwordEncoder.encode(password);
+        return password;
     }
 
     public User registerUser(User user) {
@@ -73,7 +74,7 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("Invalid email or password");
         } else {
-            return "dummyAccessToken";
+            return "dummyAccessTokenUserService";
         }
     }
 
